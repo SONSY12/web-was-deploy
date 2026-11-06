@@ -6,7 +6,7 @@ from flask import Flask, jsonify
 
 app = Flask(__name__)
 
-VERSION = "v1"
+VERSION = "v2"
 
 
 @app.get("/api/hello")
