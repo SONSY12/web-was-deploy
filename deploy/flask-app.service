@@ -1,0 +1,12 @@
+[Unit]
+Description=Flask WAS (web-was-deploy)
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/app/was-src
+ExecStart=/home/ubuntu/app/venv/bin/python app.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,39 @@
+name: Web-Was Deploy
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 정적 파일 전송 (SCP)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.WEB_SERVER_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "web-src/index.html"
+          target: "/var/www/html/"
+          # web-src/ 폴더 이름을 떼고 /var/www/html/index.html 로 저장 (없으면 /var/www/html/web-src/index.html 이 됨)
+          strip_components: 1
+
+  deploy-was:
+    runs-on: ubuntu-latest
+    needs: deploy-web
+    steps:
+      - name: WAS 원격 제어 (SSH)
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.WAS_SERVER_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/ubuntu/app
+            git pull origin main
+            sudo systemctl restart flask-app.service
+            sleep 2
+            systemctl is-active flask-app.service
+            curl -s http://127.0.0.1:5000/api/hello
